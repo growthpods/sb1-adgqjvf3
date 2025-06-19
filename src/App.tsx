@@ -1,14 +1,29 @@
-import React from 'react';
-import { ArrowRight, Users, Shield, Calendar, Star, CheckCircle, Menu, X, Clock, Video, Phone, MessageSquare, Filter, Search, Linkedin, Mail, PhoneIcon, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { ArrowRight, Users, Shield, Calendar, Star, CheckCircle, Menu, X, Clock, Video, Phone, MessageSquare, Filter, Search, Linkedin, Mail, PhoneIcon, ChevronLeft, ChevronRight, UserCircle2 as User } from 'lucide-react';
+import ExpertDetail from './ExpertDetail';
+import { expertData } from './mockData';
+
+interface Expert {
+  id: number;
+  name: string;
+  title: string;
+  company: string;
+  image: string;
+  rate: number;
+  rating: number;
+  reviews: number;
+  expertise: string[];
+  nextAvailable: string;
+  popular: boolean;
+}
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [currentView, setCurrentView] = useState('home'); // 'home', 'executives', 'join-executive'
+  const [currentView, setCurrentView] = useState('home'); // 'home', 'executives', 'join-executive', 'expert-detail'
   const [showBookingModal, setShowBookingModal] = useState(false);
-  const [selectedExecutive, setSelectedExecutive] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedTime, setSelectedTime] = useState(null);
+  const [selectedExecutive, setSelectedExecutive] = useState<Expert | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
 
   const executives = [
     {
@@ -287,7 +302,7 @@ function App() {
     setCurrentView('join-executive');
   };
 
-  const handleBookVideoCall = (executive) => {
+  const handleBookVideoCall = (executive: Expert) => {
     setSelectedExecutive(executive);
     setShowBookingModal(true);
   };
@@ -299,16 +314,26 @@ function App() {
     setSelectedTime(null);
   };
 
+  const handleViewExpertDetail = (expert: Expert) => {
+    setSelectedExecutive(expert);
+    setCurrentView('expert-detail');
+  };
+
+  const handleBackToExecutives = () => {
+    setSelectedExecutive(null);
+    setCurrentView('executives');
+  };
+
   // Calendar data
   const currentDate = new Date();
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
   
-  const getDaysInMonth = (month, year) => {
+  const getDaysInMonth = (month: number, year: number) => {
     return new Date(year, month + 1, 0).getDate();
   };
 
-  const getFirstDayOfMonth = (month, year) => {
+  const getFirstDayOfMonth = (month: number, year: number) => {
     return new Date(year, month, 1).getDay();
   };
 
@@ -496,7 +521,7 @@ function App() {
     );
   };
 
-  const ExecutiveCard = ({ exec, isCompact = false }) => (
+  const ExecutiveCard = ({ exec, isCompact = false }: { exec: Expert; isCompact?: boolean }) => (
     <div className={`bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 ${isCompact ? 'w-80 flex-shrink-0' : 'w-full'}`}>
       {exec.popular && (
         <div className="bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-t-xl text-center">
@@ -914,7 +939,13 @@ function App() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {executives.map((exec) => (
-              <ExecutiveCard key={exec.id} exec={exec} />
+              <div
+                key={exec.id}
+                onClick={() => handleViewExpertDetail(exec)}
+                className="cursor-pointer"
+              >
+                <ExecutiveCard exec={exec} />
+              </div>
             ))}
           </div>
         </div>
@@ -925,356 +956,282 @@ function App() {
     );
   }
 
+  if (currentView === 'expert-detail') {
+    return (
+      <ExpertDetail expert={expertData} onBack={handleBackToExecutives} />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white">
-      {/* Navigation */}
-      <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 flex items-center">
-                <Users className="h-8 w-8 text-amber-500" />
-                <span className="ml-2 text-xl font-bold text-slate-800">ExecutiveConnect</span>
-              </div>
-            </div>
-            
-            <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-8">
-                <button onClick={handleBrowseExecutives} className="text-slate-600 hover:text-slate-900 px-3 py-2 text-sm font-medium transition-colors">Browse Executives</button>
-                <a href="#how-it-works" className="text-slate-600 hover:text-slate-900 px-3 py-2 text-sm font-medium transition-colors">How It Works</a>
-                <a href="#testimonials" className="text-slate-600 hover:text-slate-900 px-3 py-2 text-sm font-medium transition-colors">Reviews</a>
-                <button 
-                  onClick={handleJoinAsExecutive}
-                  className="bg-slate-800 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors"
+      {currentView === 'expert-detail' ? (
+        <ExpertDetail expert={expertData} onBack={handleBackToExecutives} />
+      ) : (
+        <>
+          {/* Navigation */}
+          <nav className="sticky top-0 z-50 bg-white border-b border-neutral-100">
+            <div className="max-w-7xl mx-auto px-4">
+              <div className="flex items-center justify-between h-16">
+                <div className="flex items-center">
+                  <button 
+                    onClick={handleBackToHome}
+                    className="text-xl font-semibold text-neutral-900"
+                  >
+                    meetexperts.co
+                  </button>
+                </div>
+                <div className="hidden md:flex items-center space-x-8">
+                  <button
+                    onClick={handleJoinAsExecutive}
+                    className="text-neutral-600 hover:text-neutral-900 transition-colors duration-200"
+                  >
+                    Become an Expert
+                  </button>
+                  <a href="#" className="text-neutral-600 hover:text-neutral-900 transition-colors duration-200">
+                    Our Mission
+                  </a>
+                  <button className="p-2 rounded-full hover:bg-neutral-50 transition-colors duration-200">
+                    <Search className="w-5 h-5 text-neutral-600" />
+                  </button>
+                  <button className="p-2 rounded-full hover:bg-neutral-50 transition-colors duration-200">
+                    <User className="w-5 h-5 text-neutral-600" />
+                  </button>
+                  <button className="bg-neutral-900 text-white px-6 py-2.5 rounded-lg hover:bg-black transition-all duration-200">
+                    Sign up
+                  </button>
+                </div>
+                <button
+                  className="md:hidden p-2 hover:bg-neutral-50 rounded-full transition-colors duration-200"
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
                 >
-                  Join as Executive
+                  {isMenuOpen ? (
+                    <X className="w-6 h-6 text-neutral-600" />
+                  ) : (
+                    <Menu className="w-6 h-6 text-neutral-600" />
+                  )}
                 </button>
               </div>
             </div>
-            
-            <div className="md:hidden">
-              <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="text-slate-600 hover:text-slate-900 p-2"
-              >
-                {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-              </button>
-            </div>
-          </div>
-        </div>
-        
-        {/* Mobile menu */}
-        {isMenuOpen && (
-          <div className="md:hidden bg-white border-t border-gray-100">
-            <div className="px-2 pt-2 pb-3 space-y-1">
-              <button onClick={handleBrowseExecutives} className="block px-3 py-2 text-slate-600 hover:text-slate-900 text-sm font-medium w-full text-left">Browse Executives</button>
-              <a href="#how-it-works" className="block px-3 py-2 text-slate-600 hover:text-slate-900 text-sm font-medium">How It Works</a>
-              <a href="#testimonials" className="block px-3 py-2 text-slate-600 hover:text-slate-900 text-sm font-medium">Reviews</a>
-              <button 
-                onClick={handleJoinAsExecutive}
-                className="w-full text-left bg-slate-800 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors mt-2"
-              >
-                Join as Executive
-              </button>
-            </div>
-          </div>
-        )}
-      </nav>
+          </nav>
 
-      {/* Popular Executives Section - First Section */}
-      <section className="py-20 bg-gradient-to-br from-slate-50 to-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center px-4 py-2 bg-amber-50 rounded-full text-amber-700 text-sm font-medium mb-6">
-              <Clock className="h-4 w-4 mr-2" />
-              Book 1-on-1 Calls • Verified C-Suite Executives
-            </div>
-            
-            <h1 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-4">
-              Popular Executives
-            </h1>
-            <p className="text-xl text-slate-600 mb-8">
-              Book calls with our most sought-after C-suite leaders
-            </p>
-            
-            <button 
-              onClick={handleBrowseExecutives}
-              className="inline-flex items-center text-amber-600 hover:text-amber-700 font-medium text-lg mb-8"
-            >
-              View All {executives.length} Executives
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </button>
-          </div>
-          
-          {/* 3-4 Rows Grid Layout */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
-            {popularExecutives.map((exec) => (
-              <ExecutiveCard key={exec.id} exec={exec} />
-            ))}
-          </div>
-          
-          <div className="text-center">
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-              <button 
-                onClick={handleBrowseExecutives}
-                className="bg-slate-800 text-white px-8 py-4 rounded-lg font-semibold hover:bg-slate-700 transition-all transform hover:scale-105 flex items-center justify-center"
-              >
-                Browse All Executives
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </button>
-              <button className="border-2 border-slate-200 text-slate-700 px-8 py-4 rounded-lg font-semibold hover:border-slate-300 hover:bg-slate-50 transition-all">
-                How It Works
-              </button>
-            </div>
-            
-            <div className="flex items-center justify-center space-x-8 text-sm text-slate-500">
-              <div className="flex items-center">
-                <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                {executives.length}+ Executives
-              </div>
-              <div className="flex items-center">
-                <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                Instant Booking
-              </div>
-              <div className="flex items-center">
-                <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                Money-back Guarantee
+          {/* Mobile Menu */}
+          {isMenuOpen && (
+            <div className="fixed inset-0 bg-white z-40 pt-20 px-4 md:hidden">
+              <div className="flex flex-col space-y-4">
+                <button
+                  onClick={handleJoinAsExecutive}
+                  className="text-neutral-600 hover:text-neutral-900 py-2 transition-colors duration-200"
+                >
+                  Become an Expert
+                </button>
+                <a href="#" className="text-neutral-600 hover:text-neutral-900 py-2 transition-colors duration-200">
+                  Our Mission
+                </a>
+                <button className="bg-neutral-900 text-white px-6 py-2.5 rounded-lg hover:bg-black w-full transition-all duration-200">
+                  Sign up
+                </button>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
+          )}
 
-      {/* Hero Section */}
-      <section className="relative bg-white py-16 lg:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 leading-tight mb-6">
-              Get Advice from
-              <span className="text-amber-500 block">Top Executives</span>
-            </h2>
-            
-            <p className="text-xl text-slate-600 mb-8 leading-relaxed max-w-3xl mx-auto">
-              Book 1-on-1 calls with CEOs, CTOs, CFOs, and board members. 
-              Get strategic insights, career advice, and industry expertise from proven leaders.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section id="how-it-works" className="py-20 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">
-              How Executive Booking Works
-            </h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-              Get personalized advice from C-suite executives in just a few clicks
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow text-center">
-              <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Users className="h-8 w-8 text-amber-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-slate-900 mb-4">1. Browse & Select</h3>
-              <p className="text-slate-600 leading-relaxed">
-                Browse verified C-suite executives, read their profiles, and select 
-                the expert that matches your needs and budget.
-              </p>
-            </div>
-            
-            <div className="bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow text-center">
-              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Calendar className="h-8 w-8 text-slate-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-slate-900 mb-4">2. Book Your Call</h3>
-              <p className="text-slate-600 leading-relaxed">
-                Choose your preferred time slot, select call format (video, phone, or message), 
-                and complete secure payment.
-              </p>
-            </div>
-            
-            <div className="bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Video className="h-8 w-8 text-green-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-slate-900 mb-4">3. Get Expert Advice</h3>
-              <p className="text-slate-600 leading-relaxed">
-                Connect with your chosen executive for personalized insights, 
-                strategic advice, and actionable recommendations.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section id="testimonials" className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">
-              What Our Clients Say
-            </h2>
-            <p className="text-xl text-slate-600">
-              Hear from entrepreneurs and leaders who got valuable insights
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-slate-50 rounded-xl p-8 hover:bg-slate-100 transition-colors">
-              <div className="flex items-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-5 w-5 text-amber-400 fill-current" />
-                ))}
-              </div>
-              <p className="text-slate-700 mb-6 leading-relaxed italic">
-                "Sarah's strategic insights helped us navigate our Series B funding. 
-                Her experience was invaluable and worth every penny."
-              </p>
-              <div className="flex items-center">
-                <img 
-                  src="https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=150" 
-                  alt="Alex Johnson"
-                  className="w-12 h-12 rounded-full mr-4 object-cover"
-                />
-                <div>
-                  <div className="font-semibold text-slate-900">Alex Johnson</div>
-                  <div className="text-sm text-slate-600">Founder, StartupCo</div>
+          {/* Main Content */}
+          {currentView === 'home' && (
+            <>
+              {/* Hero Section */}
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-800">
+                  <div className="absolute inset-0 opacity-30" style={{
+                    backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.1) 1px, transparent 0)`,
+                    backgroundSize: '32px 32px'
+                  }}></div>
+                </div>
+                <div className="relative max-w-7xl mx-auto px-4 py-32 sm:py-48">
+                  <div className="max-w-3xl">
+                    <h1 className="text-4xl sm:text-5xl font-bold text-white mb-6">
+                      Connect with Top Industry Experts
+                    </h1>
+                    <p className="text-xl text-neutral-200 mb-8 max-w-2xl">
+                      Book 1:1 video calls with accomplished executives and industry leaders for personalized guidance and insights.
+                    </p>
+                    <button
+                      onClick={handleBrowseExecutives}
+                      className="bg-white text-neutral-900 px-6 py-3 rounded-lg font-medium inline-flex items-center hover:bg-neutral-50 transition-colors duration-200"
+                    >
+                      Browse Experts
+                      <ArrowRight className="w-5 h-5 ml-2" />
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-            
-            <div className="bg-slate-50 rounded-xl p-8 hover:bg-slate-100 transition-colors">
-              <div className="flex items-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-5 w-5 text-amber-400 fill-current" />
-                ))}
-              </div>
-              <p className="text-slate-700 mb-6 leading-relaxed italic">
-                "Michael's board experience gave me the confidence to pursue 
-                my first board position. Excellent mentorship!"
-              </p>
-              <div className="flex items-center">
-                <img 
-                  src="https://images.pexels.com/photos/3760069/pexels-photo-3760069.jpeg?auto=compress&cs=tinysrgb&w=150" 
-                  alt="Maria Garcia"
-                  className="w-12 h-12 rounded-full mr-4 object-cover"
-                />
-                <div>
-                  <div className="font-semibold text-slate-900">Maria Garcia</div>
-                  <div className="text-sm text-slate-600">VP Strategy, TechCorp</div>
+
+              {/* Popular Experts Section */}
+              <div className="py-24 bg-white">
+                <div className="max-w-7xl mx-auto px-4">
+                  <div className="flex justify-between items-end mb-12">
+                    <div>
+                      <h2 className="text-3xl font-bold text-neutral-900 mb-4">Top Experts</h2>
+                      <p className="text-neutral-600">Book a session with our most sought-after industry leaders</p>
+                    </div>
+                    <button
+                      onClick={handleBrowseExecutives}
+                      className="text-neutral-900 font-medium hover:text-neutral-600 transition-colors duration-200 hidden sm:flex items-center"
+                    >
+                      View All
+                      <ArrowRight className="w-5 h-5 ml-2" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {executives.filter(exec => exec.popular).map((exec) => (
+                      <div
+                        key={exec.id}
+                        onClick={() => handleViewExpertDetail(exec)}
+                        className="cursor-pointer"
+                      >
+                        <ExecutiveCard exec={exec} />
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-12 text-center sm:hidden">
+                    <button
+                      onClick={handleBrowseExecutives}
+                      className="text-neutral-900 font-medium hover:text-neutral-600 transition-colors duration-200 inline-flex items-center"
+                    >
+                      View All
+                      <ArrowRight className="w-5 h-5 ml-2" />
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-            
-            <div className="bg-slate-50 rounded-xl p-8 hover:bg-slate-100 transition-colors">
-              <div className="flex items-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-5 w-5 text-amber-400 fill-current" />
-                ))}
-              </div>
-              <p className="text-slate-700 mb-6 leading-relaxed italic">
-                "Jennifer's financial expertise helped us optimize our capital structure. 
-                The ROI on this call was incredible."
-              </p>
-              <div className="flex items-center">
-                <img 
-                  src="https://images.pexels.com/photos/3184338/pexels-photo-3184338.jpeg?auto=compress&cs=tinysrgb&w=150" 
-                  alt="David Chen"
-                  className="w-12 h-12 rounded-full mr-4 object-cover"
-                />
-                <div>
-                  <div className="font-semibold text-slate-900">David Chen</div>
-                  <div className="text-sm text-slate-600">CEO, FinanceFlow</div>
+
+              {/* Press Section */}
+              <div className="bg-neutral-50 py-20">
+                <div className="max-w-7xl mx-auto px-4">
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-12 items-center justify-items-center opacity-60">
+                    <img src="/logos/wsj-logo.svg" alt="Wall Street Journal" className="h-5 md:h-6" />
+                    <img src="/logos/ad-logo.svg" alt="Architectural Digest" className="h-5 md:h-6" />
+                    <img src="/logos/bustle-logo.svg" alt="Bustle" className="h-5 md:h-6" />
+                    <img src="/logos/fastcompany-logo.svg" alt="Fast Company" className="h-5 md:h-6" />
+                    <img src="/logos/forbes-logo.svg" alt="Forbes" className="h-5 md:h-6" />
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-slate-800 to-slate-900">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">
-            Ready to Get Expert Advice?
-          </h2>
-          <p className="text-xl text-slate-300 mb-8 leading-relaxed">
-            Book your first call with a C-suite executive today and get the insights 
-            you need to accelerate your business or career.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button 
-              onClick={handleBrowseExecutives}
-              className="bg-amber-500 text-slate-900 px-8 py-4 rounded-lg font-semibold hover:bg-amber-400 transition-all transform hover:scale-105 flex items-center justify-center"
-            >
-              Browse Executives
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </button>
-            <button 
-              onClick={handleJoinAsExecutive}
-              className="border-2 border-white/20 text-white px-8 py-4 rounded-lg font-semibold hover:bg-white/10 transition-all"
-            >
-              Join as Executive
-            </button>
-          </div>
-          
-          <div className="mt-8 text-slate-400 text-sm">
-            💰 Money-back guarantee • 🔒 Secure payments • ⭐ 4.9/5 average rating
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-slate-900 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="col-span-1 md:col-span-2">
-              <div className="flex items-center mb-4">
-                <Users className="h-8 w-8 text-amber-500" />
-                <span className="ml-2 text-xl font-bold">ExecutiveConnect</span>
+              {/* Value Props */}
+              <div className="py-24 bg-white">
+                <div className="max-w-7xl mx-auto px-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
+                    <div>
+                      <h3 className="text-xl font-semibold mb-4 text-neutral-900">
+                        Get access to the world's best
+                      </h3>
+                      <p className="text-neutral-600 leading-relaxed">
+                        Connect with top experts in their field for personalized guidance.
+                      </p>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-semibold mb-4 text-neutral-900">
+                        Personalized advice just for you
+                      </h3>
+                      <p className="text-neutral-600 leading-relaxed">
+                        Get tailored solutions and insights specific to your needs.
+                      </p>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-semibold mb-4 text-neutral-900">
+                        Save time and money, guaranteed
+                      </h3>
+                      <p className="text-neutral-600 leading-relaxed">
+                        Make informed decisions with expert guidance at your fingertips.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <p className="text-slate-400 mb-6 max-w-md">
-                Connect with C-suite executives and board members for personalized 
-                advice, strategic insights, and career guidance.
-              </p>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-4">For Clients</h4>
-              <ul className="space-y-2 text-slate-400">
-                <li><button onClick={handleBrowseExecutives} className="hover:text-white transition-colors">Browse Executives</button></li>
-                <li><a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="#testimonials" className="hover:text-white transition-colors">Reviews</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-4">For Executives</h4>
-              <ul className="space-y-2 text-slate-400">
-                <li><button onClick={handleJoinAsExecutive} className="hover:text-white transition-colors">Join Platform</button></li>
-                <li><a href="#" className="hover:text-white transition-colors">Earnings</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Resources</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Support</a></li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="border-t border-slate-800 mt-12 pt-8 text-center text-slate-400">
-            <p>&copy; 2024 ExecutiveConnect. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+            </>
+          )}
 
-      {/* Booking Modal */}
-      <BookingModal />
+          {currentView === 'executives' && (
+            <div className="max-w-7xl mx-auto px-4 py-12">
+              <div className="flex justify-between items-center mb-8">
+                <h1 className="text-3xl font-bold text-neutral-900">Browse Experts</h1>
+                <button
+                  onClick={handleJoinAsExecutive}
+                  className="text-neutral-600 hover:text-neutral-900 transition-colors duration-200"
+                >
+                  Become an Expert
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {executives.map((exec) => (
+                  <div
+                    key={exec.id}
+                    onClick={() => handleViewExpertDetail(exec)}
+                    className="cursor-pointer"
+                  >
+                    <ExecutiveCard exec={exec} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {currentView === 'join-executive' && (
+            <div className="max-w-3xl mx-auto px-4 py-12">
+              <h1 className="text-3xl font-bold text-neutral-900 mb-8">Become an Expert</h1>
+              <p className="text-neutral-600 mb-8">
+                Share your expertise with professionals seeking guidance. Join our platform of industry leaders.
+              </p>
+              <button className="bg-neutral-900 text-white px-6 py-3 rounded-lg font-medium hover:bg-black transition-colors duration-200">
+                Apply Now
+              </button>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
+
+// Expert Card Component
+interface ExpertCardProps {
+  expert: Expert;
+}
+
+const ExpertCard: React.FC<ExpertCardProps> = ({ expert }) => (
+  <div className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-neutral-100">
+    <div className="relative">
+      <img src={expert.image} alt={expert.name} className="w-full h-64 object-cover" />
+      <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium text-neutral-900">
+        Top Expert
+      </div>
+    </div>
+    <div className="p-6">
+      <div className="flex items-center mb-3">
+        <h3 className="font-medium text-lg text-neutral-900 group-hover:text-black transition-colors duration-200">
+          {expert.name}
+        </h3>
+        <div className="ml-auto flex items-center bg-neutral-50 px-2 py-1 rounded-full">
+          <span className="text-neutral-900">★</span>
+          <span className="ml-1 text-sm font-medium text-neutral-700">{expert.rating}</span>
+        </div>
+      </div>
+      <p className="text-neutral-900 font-medium mb-2">${expert.rate}/Session</p>
+      <p className="text-neutral-600 mb-4">{expert.title}</p>
+      <div className="flex flex-wrap gap-2">
+        {expert.expertise.map((skill, index) => (
+          <span 
+            key={index} 
+            className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-neutral-50 text-neutral-700 group-hover:bg-neutral-100 transition-colors duration-200"
+          >
+            {skill}
+          </span>
+        ))}
+      </div>
+    </div>
+  </div>
+);
 
 export default App;
