@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Star, Calendar, Clock, Video, MessageSquare, ArrowLeft } from 'lucide-react';
 import { Expert, Review } from './types';
+import MeetingConcierge from './MeetingConcierge';
 
 interface ExpertDetailProps {
   expert: Expert;
@@ -129,33 +130,11 @@ const ExpertDetail: React.FC<ExpertDetailProps> = ({ expert, onBack, onBook }) =
           {/* Right Column - Booking */}
           <div className="lg:col-span-1">
             <div className="sticky top-24">
-              <div className="card">
-                <h2 className="text-lg mb-6">Book a Session</h2>
-                
-                <div className="space-y-4 mb-6">
-                  <div className="flex items-center p-3 bg-neutral-50 rounded-lg">
-                    <Video className="w-5 h-5 text-neutral-600 mr-3" />
-                    <div>
-                      <p className="font-medium">Video Call</p>
-                      <p className="text-sm">60 minutes session</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center p-3 bg-neutral-50 rounded-lg">
-                    <MessageSquare className="w-5 h-5 text-neutral-600 mr-3" />
-                    <div>
-                      <p className="font-medium">Chat Support</p>
-                      <p className="text-sm">48 hours response time</p>
-                    </div>
-                  </div>
-                </div>
-
-                <button 
-                  onClick={onBook}
-                  className="btn-primary w-full"
-                >
-                  Book Session
-                </button>
-              </div>
+              <MeetingConcierge 
+                expertCalcomUsername={expert.calcomUsername} 
+                expertCalcomEventType={expert.calcomEventType}
+                expertName={expert.name} 
+              />
             </div>
           </div>
         </div>
@@ -216,4 +195,4 @@ const ExpertDetail: React.FC<ExpertDetailProps> = ({ expert, onBack, onBook }) =
   );
 };
 
-export default ExpertDetail; 
+export default ExpertDetail;

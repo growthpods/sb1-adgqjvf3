@@ -11,6 +11,8 @@ export interface Review {
 export interface Expert {
   id: number;
   name: string;
+  calcomUsername?: string;
+  calcomEventType?: string;
   title: string;
   company: string;
   image: string;

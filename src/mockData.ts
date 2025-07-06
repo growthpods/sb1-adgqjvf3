@@ -4,6 +4,8 @@ export const executives: Expert[] = [
   {
     id: 1,
     name: "Sarah Johnson",
+    calcomUsername: "sarah-johnson",
+    calcomEventType: "30min",
     title: "Product Design Lead",
     company: "Design Co.",
     image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&q=80",

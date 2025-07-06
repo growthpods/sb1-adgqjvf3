@@ -1,900 +1,223 @@
 import React, { useState } from 'react';
-import { ArrowRight, Users, Shield, Calendar, Star, CheckCircle, Menu, X, Clock, Video, Phone, MessageSquare, Filter, Search, Linkedin, Mail, PhoneIcon, ChevronLeft, ChevronRight, UserCircle2 as User } from 'lucide-react';
-import ExpertDetail from './ExpertDetail';
-import { Expert } from './types';
+import { ArrowRight, Search, User, Users, Calendar, Shield } from 'lucide-react';
 import { executives } from './mockData';
+import { Expert } from './types';
+import ExpertDetail from './ExpertDetail';
+import BecomeAnExpert from './BecomeAnExpert';
+import OurMission from './OurMission';
 
 function App() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [currentView, setCurrentView] = useState('home'); // 'home', 'executives', 'join-executive', 'expert-detail'
-  const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedExpert, setSelectedExpert] = useState<Expert | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [currentView, setCurrentView] = useState('home');
 
-  const handleBrowseExecutives = () => {
-    setCurrentView('executives');
-  };
+  if (selectedExpert) {
+    return <ExpertDetail expert={selectedExpert} onBack={() => setSelectedExpert(null)} onBook={() => {}} />;
+  }
 
-  const handleBackToHome = () => {
-    setCurrentView('home');
-    setSelectedExpert(null);
-  };
+  if (currentView === 'become-an-expert') {
+    return <BecomeAnExpert onBack={() => setCurrentView('home')} />;
+  }
 
-  const handleJoinAsExecutive = () => {
-    setCurrentView('join-executive');
-  };
-
-  const handleBookVideoCall = (executive: Expert) => {
-    setSelectedExpert(executive);
-    setShowBookingModal(true);
-  };
-
-  const closeBookingModal = () => {
-    setShowBookingModal(false);
-    setSelectedExpert(null);
-    setSelectedDate(null);
-    setSelectedTime(null);
-  };
-
-  const handleViewExpertDetail = (expert: Expert) => {
-    setSelectedExpert(expert);
-    setCurrentView('expert-detail');
-  };
-
-  const handleBackToExecutives = () => {
-    setSelectedExpert(null);
-    setCurrentView('executives');
-  };
-
-  // Calendar data
-  const currentDate = new Date();
-  const currentMonth = currentDate.getMonth();
-  const currentYear = currentDate.getFullYear();
-  
-  const getDaysInMonth = (month: number, year: number) => {
-    return new Date(year, month + 1, 0).getDate();
-  };
-
-  const getFirstDayOfMonth = (month: number, year: number) => {
-    return new Date(year, month, 1).getDay();
-  };
-
-  const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
-  ];
-
-  const timeSlots = [
-    "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
-    "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM",
-    "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM", "5:00 PM", "5:30 PM"
-  ];
-
-  const generateCalendarDays = () => {
-    const daysInMonth = getDaysInMonth(currentMonth, currentYear);
-    const firstDay = getFirstDayOfMonth(currentMonth, currentYear);
-    const days = [];
-
-    // Empty cells for days before the first day of the month
-    for (let i = 0; i < firstDay; i++) {
-      days.push(null);
-    }
-
-    // Days of the month
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(currentYear, currentMonth, day);
-      const isToday = date.toDateString() === currentDate.toDateString();
-      const isPast = date < currentDate;
-      days.push({ day, date, isToday, isPast });
-    }
-
-    return days;
-  };
-
-  const BookingModal = () => {
-    if (!showBookingModal || !selectedExpert) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <img 
-                  src={selectedExpert.image} 
-                  alt={selectedExpert.name}
-                  className="w-12 h-12 rounded-full object-cover mr-4"
-                />
-                <div>
-                  <h2 className="text-xl font-semibold text-slate-900">
-                    Book Video Call with {selectedExpert.name}
-                  </h2>
-                  <p className="text-slate-600">{selectedExpert.title} at {selectedExpert.company}</p>
-                  <p className="text-lg font-semibold text-slate-900">${selectedExpert.rate}/hour</p>
-                </div>
-              </div>
-              <button 
-                onClick={closeBookingModal}
-                className="text-slate-400 hover:text-slate-600 p-2"
-              >
-                <X className="h-6 w-6" />
+  if (currentView === 'our-mission') {
+    return <OurMission onBack={() => setCurrentView('home')} />;
+  }
+  return (
+    <div className="bg-white">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-white border-b border-neutral-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex-shrink-0">
+              <a href="/" className="text-2xl font-bold text-neutral-900">
+                meetexperts.co
+              </a>
+            </div>
+            <div className="hidden md:flex items-center space-x-8">
+              <button onClick={() => setCurrentView('become-an-expert')} className="text-neutral-600 hover:text-neutral-900">
+                Become an Expert
               </button>
-            </div>
-          </div>
-
-          <div className="p-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Calendar */}
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-semibold text-slate-900">Select Date</h3>
-                  <div className="flex items-center space-x-2">
-                    <button className="p-2 hover:bg-slate-100 rounded-lg">
-                      <ChevronLeft className="h-5 w-5" />
-                    </button>
-                    <span className="font-medium text-slate-900">
-                      {monthNames[currentMonth]} {currentYear}
-                    </span>
-                    <button className="p-2 hover:bg-slate-100 rounded-lg">
-                      <ChevronRight className="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-7 gap-1 mb-2">
-                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                    <div key={day} className="p-2 text-center text-sm font-medium text-slate-500">
-                      {day}
-                    </div>
-                  ))}
-                </div>
-
-                <div className="grid grid-cols-7 gap-1">
-                  {generateCalendarDays().map((dayData, index) => (
-                    <div key={index} className="aspect-square">
-                      {dayData && (
-                        <button
-                          onClick={() => !dayData.isPast && setSelectedDate(dayData.date)}
-                          disabled={dayData.isPast}
-                          className={`w-full h-full rounded-lg text-sm font-medium transition-colors ${
-                            dayData.isPast
-                              ? 'text-slate-300 cursor-not-allowed'
-                              : selectedDate?.toDateString() === dayData.date.toDateString()
-                              ? 'bg-slate-800 text-white'
-                              : dayData.isToday
-                              ? 'bg-amber-100 text-amber-800 hover:bg-amber-200'
-                              : 'text-slate-700 hover:bg-slate-100'
-                          }`}
-                        >
-                          {dayData.day}
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Time Slots */}
-              <div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-6">
-                  {selectedDate ? `Available Times - ${selectedDate.toLocaleDateString()}` : 'Select a date first'}
-                </h3>
-                
-                {selectedDate ? (
-                  <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto">
-                    {timeSlots.map((time) => (
-                      <button
-                        key={time}
-                        onClick={() => setSelectedTime(time)}
-                        className={`p-3 rounded-lg text-sm font-medium transition-colors ${
-                          selectedTime === time
-                            ? 'bg-slate-800 text-white'
-                            : 'border border-slate-200 text-slate-700 hover:bg-slate-50'
-                        }`}
-                      >
-                        {time}
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12 text-slate-500">
-                    <Calendar className="h-12 w-12 mx-auto mb-4 text-slate-300" />
-                    <p>Please select a date to view available time slots</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Booking Summary & Confirm */}
-            {selectedDate && selectedTime && (
-              <div className="mt-8 p-6 bg-slate-50 rounded-xl">
-                <h4 className="font-semibold text-slate-900 mb-4">Booking Summary</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Executive:</span>
-                    <span className="font-medium">{selectedExpert.name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Date:</span>
-                    <span className="font-medium">{selectedDate.toLocaleDateString()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Time:</span>
-                    <span className="font-medium">{selectedTime}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Duration:</span>
-                    <span className="font-medium">1 hour</span>
-                  </div>
-                  <div className="flex justify-between border-t border-slate-200 pt-2 mt-2">
-                    <span className="font-semibold">Total:</span>
-                    <span className="font-semibold text-lg">${selectedExpert.rate}</span>
-                  </div>
-                </div>
-                
-                <button className="w-full bg-slate-800 text-white py-3 rounded-lg font-semibold hover:bg-slate-700 transition-colors mt-6">
-                  Confirm & Pay ${selectedExpert.rate}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const ExecutiveCard = ({ exec, isCompact = false }: { exec: Expert; isCompact?: boolean }) => (
-    <div className={`bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 ${isCompact ? 'w-80 flex-shrink-0' : 'w-full'}`}>
-      {exec.popular && (
-        <div className="bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-t-xl text-center">
-          POPULAR
-        </div>
-      )}
-      
-      <div className="p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center">
-            <img 
-              src={exec.image} 
-              alt={exec.name}
-              className="w-16 h-16 rounded-full object-cover mr-4"
-            />
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900">{exec.name}</h3>
-              <p className="text-slate-600 text-sm">{exec.title}</p>
-              <p className="text-slate-500 text-xs">{exec.company}</p>
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="text-2xl font-bold text-slate-900">${exec.rate}</div>
-            <div className="text-sm text-slate-500">/hour</div>
-          </div>
-        </div>
-        
-        <div className="flex items-center mb-4">
-          <div className="flex items-center mr-4">
-            <Star className="h-4 w-4 text-amber-400 fill-current" />
-            <span className="ml-1 text-sm font-medium text-slate-700">{exec.rating}</span>
-            <span className="ml-1 text-sm text-slate-500">({exec.reviews})</span>
-          </div>
-          <div className="flex items-center text-sm text-green-600">
-            <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-            Available {exec.nextAvailable}
-          </div>
-        </div>
-        
-        <div className="mb-6">
-          <div className="flex flex-wrap gap-2">
-            {exec.expertise.slice(0, 3).map((skill: string, index: number) => (
-              <span 
-                key={index} 
-                className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-neutral-50 text-neutral-700"
+              <button onClick={() => setCurrentView('our-mission')} className="text-neutral-600 hover:text-neutral-900">
+                Our Mission
+              </button>
+              <button>
+                <Search className="h-5 w-5 text-neutral-600" />
+              </button>
+              <button>
+                <User className="h-5 w-5 text-neutral-600" />
+              </button>
+              <a
+                href="#"
+                className="bg-neutral-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-neutral-800"
               >
-                {skill}
-              </span>
-            ))}
+                Sign up
+              </a>
+            </div>
           </div>
         </div>
-        
-        <div className="space-y-3">
-          <button 
-            onClick={() => handleBookVideoCall(exec)}
-            className="w-full bg-slate-800 text-white py-3 rounded-lg font-semibold hover:bg-slate-700 transition-colors flex items-center justify-center"
-          >
-            <Video className="h-4 w-4 mr-2" />
-            Book Video Call
-          </button>
-          <div className="flex space-x-2">
-            <button className="flex-1 border border-slate-200 text-slate-700 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors flex items-center justify-center">
-              <Phone className="h-4 w-4 mr-1" />
-              Phone
-            </button>
-            <button className="flex-1 border border-slate-200 text-slate-700 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors flex items-center justify-center">
-              <MessageSquare className="h-4 w-4 mr-1" />
-              Message
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+      </header>
 
-  // Join as Executive View
-  if (currentView === 'join-executive') {
-    return (
-      <div className="bg-white">
-        {/* Hero Section */}
-        <div className="relative min-h-[400px] flex items-center justify-center">
-          <div className="absolute inset-0 bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-700">
-            <div className="absolute inset-0 opacity-60" style={{
-              backgroundImage: `radial-gradient(circle at 12px 12px, rgba(255,255,255,0.18) 4px, transparent 0)`,
-              backgroundSize: '40px 40px'
-            }}></div>
-          </div>
-          <div className="relative w-full flex flex-col items-center justify-center text-center px-4">
-            <h1 className="text-5xl sm:text-6xl font-bold text-neutral-100 mb-6 leading-tight">
-              Share Your Expertise
+      {/* Hero Section */}
+      <main>
+        <div className="relative bg-black">
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: "url('https://images.unsplash.com/photo-1556761175-5973dc0f32e7?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1632&q=80')", opacity: 0.5 }}
+          ></div>
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 text-center">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight">
+              Book the world's most in-demand experts & get advice over a video call
             </h1>
-            <p className="text-xl text-neutral-300 mb-8 max-w-2xl mx-auto leading-relaxed">
-              Join our network of industry leaders and help professionals grow through personalized guidance and mentorship.
+            <div className="mt-8">
+              <a
+                href="#"
+                className="inline-block bg-white text-black px-8 py-3 rounded-lg font-semibold text-lg hover:bg-neutral-100"
+              >
+                Find an Expert
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Logos Section */}
+        <div className="bg-white pt-8 pb-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-2 gap-8 md:grid-cols-5">
+              <div className="col-span-1 flex justify-center">
+                <img className="h-8" src="/logos/wsj-logo.svg" alt="WSJ" />
+              </div>
+              <div className="col-span-1 flex justify-center">
+                <img className="h-8" src="/logos/ad-logo.svg" alt="AD" />
+              </div>
+              <div className="col-span-1 flex justify-center">
+                <img className="h-8" src="/logos/bustle-logo.svg" alt="Bustle" />
+              </div>
+              <div className="col-span-1 flex justify-center">
+                <img className="h-8" src="/logos/fastcompany-logo.svg" alt="Fast Company" />
+              </div>
+              <div className="col-span-1 flex justify-center">
+                <img className="h-8" src="/logos/forbes-logo.svg" alt="Forbes" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Value Propositions Section */}
+        <div className="bg-white py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+              <div className="text-center">
+                <h3 className="text-lg font-medium text-gray-900">Get access to the world's best</h3>
+                <p className="mt-2 text-base text-gray-500">
+                  Choose from our list of the top experts in a variety of topics
+                </p>
+              </div>
+              <div className="text-center">
+                <h3 className="text-lg font-medium text-gray-900">Personalized advice just for you</h3>
+                <p className="mt-2 text-base text-gray-500">
+                  Book a 1-on-1 virtual session & get advice that is tailored to you
+                </p>
+              </div>
+              <div className="text-center">
+                <h3 className="text-lg font-medium text-gray-900">Save time and money, guaranteed</h3>
+                <p className="mt-2 text-base text-gray-500">
+                  Our guarantee - find value in your first session or your money back
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Top Experts Section */}
+        <div className="bg-neutral-50 py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-3xl font-bold text-center mb-12">Top Experts. Access to the best has never been easier</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {executives.map((expert) => (
+                <ExpertCard key={expert.id} expert={expert} onViewProfile={setSelectedExpert} />
+              ))}
+            </div>
+          </div>
+        </div>
+      </main>
+      <footer className="bg-neutral-800 text-white">
+        <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-400 tracking-wider uppercase">Experts by</h3>
+              <ul className="mt-4 space-y-4">
+                <li><a href="#" className="text-base text-neutral-300 hover:text-white">Marketing</a></li>
+                <li><a href="#" className="text-base text-neutral-300 hover:text-white">CTOs</a></li>
+                <li><a href="#" className="text-base text-neutral-300 hover:text-white">SaaS</a></li>
+                <li><a href="#" className="text-base text-neutral-300 hover:text-white">CIOs</a></li>
+                <li><a href="#" className="text-base text-neutral-300 hover:text-white">CXOs</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-400 tracking-wider uppercase">Company</h3>
+              <ul className="mt-4 space-y-4">
+                <li><a href="#" className="text-base text-neutral-300 hover:text-white">About Us</a></li>
+                <li><a href="#" className="text-base text-neutral-300 hover:text-white">Our Mission</a></li>
+                <li><a href="#" className="text-base text-neutral-300 hover:text-white">Careers</a></li>
+                <li><a href="#" className="text-base text-neutral-300 hover:text-white">Press</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-400 tracking-wider uppercase">For Experts</h3>
+              <ul className="mt-4 space-y-4">
+                <li><a href="#" className="text-base text-neutral-300 hover:text-white">Become an Expert</a></li>
+                <li><a href="#" className="text-base text-neutral-300 hover:text-white">Expert Login</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-400 tracking-wider uppercase">Legal</h3>
+              <ul className="mt-4 space-y-4">
+                <li><a href="#" className="text-base text-neutral-300 hover:text-white">Privacy Policy</a></li>
+                <li><a href="#" className="text-base text-neutral-300 hover:text-white">Terms of Service</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="mt-8 border-t border-neutral-700 pt-8 md:flex md:items-center md:justify-between">
+            <div className="flex space-x-6 md:order-2">
+              <a href="#" className="text-neutral-400 hover:text-neutral-300">
+                <span className="sr-only">Facebook</span>
+                <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd" />
+                </svg>
+              </a>
+              <a href="#" className="text-neutral-400 hover:text-neutral-300">
+                <span className="sr-only">Instagram</span>
+                <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fillRule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.024.06 1.378.06 3.808s-.012 2.784-.06 3.808c-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.024.048-1.378.06-3.808.06s-2.784-.013-3.808-.06c-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.048-1.024-.06-1.378-.06-3.808s.012-2.784.06-3.808c.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 016.08 3.692c.636-.247 1.363-.416 2.427-.465C9.53 2.013 9.884 2 12.315 2zM12 7.167a4.833 4.833 0 100 9.666 4.833 4.833 0 000-9.666zM12 15.333a3.333 3.333 0 110-6.666 3.333 3.333 0 010 6.666zm5.338-9.87a1.2 1.2 0 100 2.4 1.2 1.2 0 000-2.4z" clipRule="evenodd" />
+                </svg>
+              </a>
+              <a href="#" className="text-neutral-400 hover:text-neutral-300">
+                <span className="sr-only">Twitter</span>
+                <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.71v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
+                </svg>
+              </a>
+            </div>
+            <p className="mt-8 text-base text-neutral-400 md:mt-0 md:order-1">
+              &copy; 2024 meetexperts.co, Inc. All rights reserved.
             </p>
           </div>
         </div>
-
-        {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-4 py-24">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-            {/* Benefits Section */}
-            <div>
-              <h2 className="text-3xl font-bold text-neutral-900 mb-8">Why Join Us?</h2>
-              <div className="space-y-8">
-                <div className="flex items-start">
-                  <div className="mt-1 bg-neutral-100 p-2 rounded-lg">
-                    <Users className="w-6 h-6 text-neutral-700" />
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="text-xl font-semibold mb-2">Connect with Professionals</h3>
-                    <p className="text-neutral-600 leading-relaxed">
-                      Share your knowledge and experience with professionals seeking guidance in your area of expertise.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start">
-                  <div className="mt-1 bg-neutral-100 p-2 rounded-lg">
-                    <Clock className="w-6 h-6 text-neutral-700" />
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="text-xl font-semibold mb-2">Flexible Schedule</h3>
-                    <p className="text-neutral-600 leading-relaxed">
-                      Set your own availability and manage your calendar to balance consulting with your existing commitments.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start">
-                  <div className="mt-1 bg-neutral-100 p-2 rounded-lg">
-                    <Star className="w-6 h-6 text-neutral-700" />
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="text-xl font-semibold mb-2">Build Your Brand</h3>
-                    <p className="text-neutral-600 leading-relaxed">
-                      Establish yourself as a thought leader and expand your professional network while helping others succeed.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start">
-                  <div className="mt-1 bg-neutral-100 p-2 rounded-lg">
-                    <Shield className="w-6 h-6 text-neutral-700" />
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="text-xl font-semibold mb-2">Secure Platform</h3>
-                    <p className="text-neutral-600 leading-relaxed">
-                      Our platform handles scheduling, payments, and communication, so you can focus on what matters most - sharing your expertise.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Application Form */}
-            <div className="bg-neutral-50 p-8 rounded-2xl">
-              <h2 className="text-3xl font-bold text-neutral-900 mb-8">Apply to Join</h2>
-              <form className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">Full Name</label>
-                  <input
-                    type="text"
-                    className="w-full px-4 py-3 rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-500"
-                    placeholder="Enter your full name"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">Email</label>
-                  <input
-                    type="email"
-                    className="w-full px-4 py-3 rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-500"
-                    placeholder="Enter your email"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">LinkedIn Profile</label>
-                  <input
-                    type="url"
-                    className="w-full px-4 py-3 rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-500"
-                    placeholder="Enter your LinkedIn URL"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">Areas of Expertise</label>
-                  <textarea
-                    className="w-full px-4 py-3 rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-500 h-32"
-                    placeholder="Describe your areas of expertise and experience"
-                  ></textarea>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">Hourly Rate (USD)</label>
-                  <input
-                    type="number"
-                    className="w-full px-4 py-3 rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-500"
-                    placeholder="Enter your desired hourly rate"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full bg-neutral-900 text-white px-8 py-4 rounded-lg font-medium hover:bg-neutral-800 transition-colors duration-200"
-                >
-                  Submit Application
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-
-        {/* Social Proof */}
-        <div className="bg-neutral-50 py-24">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold text-neutral-900 mb-4">Join Our Expert Community</h2>
-              <p className="text-neutral-600 max-w-2xl mx-auto">
-                Our experts come from leading companies and bring years of experience in their respective fields.
-              </p>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-12 items-center justify-items-center opacity-60">
-              <img src="/logos/wsj-logo.svg" alt="Wall Street Journal" className="h-5 md:h-6" />
-              <img src="/logos/ad-logo.svg" alt="Architectural Digest" className="h-5 md:h-6" />
-              <img src="/logos/bustle-logo.svg" alt="Bustle" className="h-5 md:h-6" />
-              <img src="/logos/fastcompany-logo.svg" alt="Fast Company" className="h-5 md:h-6" />
-              <img src="/logos/forbes-logo.svg" alt="Forbes" className="h-5 md:h-6" />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (currentView === 'executives') {
-    return (
-      <div className="min-h-screen bg-white">
-        {/* Navigation */}
-        <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div className="flex items-center">
-                <button 
-                  onClick={handleBackToHome}
-                  className="flex-shrink-0 flex items-center cursor-pointer"
-                >
-                  <Users className="h-8 w-8 text-amber-500" />
-                  <span className="ml-2 text-xl font-bold text-slate-800">ExecutiveConnect</span>
-                </button>
-              </div>
-              
-              <div className="hidden md:block">
-                <div className="ml-10 flex items-baseline space-x-8">
-                  <button onClick={handleBackToHome} className="text-slate-600 hover:text-slate-900 px-3 py-2 text-sm font-medium transition-colors">Home</button>
-                  <a href="#how-it-works" className="text-slate-600 hover:text-slate-900 px-3 py-2 text-sm font-medium transition-colors">How It Works</a>
-                  <a href="#testimonials" className="text-slate-600 hover:text-slate-900 px-3 py-2 text-sm font-medium transition-colors">Reviews</a>
-                  <button 
-                    onClick={handleJoinAsExecutive}
-                    className="bg-slate-800 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors"
-                  >
-                    Join as Executive
-                  </button>
-                </div>
-              </div>
-              
-              <div className="md:hidden">
-                <button
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className="text-slate-600 hover:text-slate-900 p-2"
-                >
-                  {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-                </button>
-              </div>
-            </div>
-          </div>
-        </nav>
-
-        {/* All Executives Page */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h1 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">
-                All Executives
-              </h1>
-              <p className="text-xl text-slate-600">
-                Browse and book 1-on-1 calls with {executives.length} verified C-suite leaders
-              </p>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <Search className="h-5 w-5 text-slate-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                <input 
-                  type="text" 
-                  placeholder="Search executives..."
-                  className="pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                />
-              </div>
-              <button className="flex items-center px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
-                <Filter className="h-4 w-4 mr-2" />
-                Filter
-              </button>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {executives.map((exec) => (
-              <div
-                key={exec.id}
-                onClick={() => handleViewExpertDetail(exec)}
-                className="cursor-pointer"
-              >
-                <ExecutiveCard exec={exec} />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Booking Modal */}
-        <BookingModal />
-      </div>
-    );
-  }
-
-  if (currentView === 'expert-detail' && selectedExpert) {
-    return (
-      <ExpertDetail 
-        expert={selectedExpert} 
-        onBack={handleBackToExecutives}
-        onBook={() => {/* Implement booking logic */}}
-      />
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-white">
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-white border-b border-neutral-100">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <button 
-                onClick={handleBackToHome}
-                className="text-xl font-semibold text-neutral-900"
-              >
-                meetexperts.co
-              </button>
-            </div>
-            <div className="hidden md:flex items-center space-x-8">
-              <button
-                onClick={handleJoinAsExecutive}
-                className="btn-secondary"
-              >
-                Become an Expert
-              </button>
-              <a href="#" className="btn-secondary">
-                Our Mission
-              </a>
-              <button className="p-2 rounded-full hover:bg-neutral-50">
-                <Search className="w-5 h-5 text-neutral-600" />
-              </button>
-              <button className="p-2 rounded-full hover:bg-neutral-50">
-                <User className="w-5 h-5 text-neutral-600" />
-              </button>
-              <button className="btn-primary">
-                Sign up
-              </button>
-            </div>
-            <button
-              className="md:hidden p-2 hover:bg-neutral-50 rounded-full transition-colors duration-200"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              {isMenuOpen ? (
-                <X className="w-6 h-6 text-neutral-600" />
-              ) : (
-                <Menu className="w-6 h-6 text-neutral-600" />
-              )}
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      {/* Mobile Menu */}
-      {isMenuOpen && (
-        <div className="fixed inset-0 bg-white z-40 pt-20 px-4 md:hidden">
-          <div className="flex flex-col space-y-4">
-            <button
-              onClick={handleJoinAsExecutive}
-              className="text-neutral-600 hover:text-neutral-900 py-2 transition-colors duration-200"
-            >
-              Become an Expert
-            </button>
-            <a href="#" className="text-neutral-600 hover:text-neutral-900 py-2 transition-colors duration-200">
-              Our Mission
-            </a>
-            <button className="bg-neutral-900 text-white px-6 py-2.5 rounded-lg hover:bg-black w-full transition-all duration-200">
-              Sign up
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Main Content */}
-      {currentView === 'home' && (
-        <>
-          {/* Hero Section */}
-          <div className="relative min-h-[500px] flex items-center justify-center">
-            <div className="absolute inset-0 bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-700">
-              <div className="absolute inset-0 opacity-60" style={{
-                backgroundImage: `radial-gradient(circle at 12px 12px, rgba(255,255,255,0.18) 4px, transparent 0)`,
-                backgroundSize: '40px 40px'
-              }}></div>
-            </div>
-            <div className="relative w-full flex flex-col items-center justify-center text-center px-4">
-              <h1 className="text-5xl sm:text-6xl font-bold text-neutral-100 mb-6 leading-tight">
-                Connect with Top Industry Experts
-              </h1>
-              <p className="text-xl text-neutral-300 mb-8 max-w-xl mx-auto leading-relaxed">
-                Book 1:1 video calls with accomplished executives and industry leaders for personalized guidance and insights.
-              </p>
-              <button
-                onClick={handleBrowseExecutives}
-                className="bg-white text-neutral-900 px-8 py-4 rounded-lg font-medium inline-flex items-center hover:bg-neutral-100 border border-neutral-200 transition-colors duration-200"
-              >
-                Browse Experts
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </button>
-            </div>
-          </div>
-
-          {/* Popular Experts Section */}
-          <div className="py-24 bg-white">
-            <div className="max-w-7xl mx-auto px-4">
-              <div className="flex justify-between items-end mb-12">
-                <div>
-                  <h2 className="text-3xl font-bold text-neutral-900 mb-4">Top Experts</h2>
-                  <p className="text-neutral-500">Book a session with our most sought-after industry leaders</p>
-                </div>
-                <button
-                  onClick={handleBrowseExecutives}
-                  className="btn-secondary hidden sm:flex items-center"
-                >
-                  View All
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {executives.filter(exec => exec.popular).map((exec) => (
-                  <div
-                    key={exec.id}
-                    onClick={() => handleViewExpertDetail(exec)}
-                    className="cursor-pointer group"
-                  >
-                    <div className="card">
-                      <div className="flex items-start space-x-4 mb-4">
-                        <img 
-                          src={exec.image} 
-                          alt={exec.name}
-                          className="w-16 h-16 rounded-full object-cover border border-neutral-100"
-                        />
-                        <div>
-                          <h3 className="font-medium group-hover:text-black transition-colors duration-200">
-                            {exec.name}
-                          </h3>
-                          <p className="text-sm mb-1">{exec.title}</p>
-                          <p className="text-sm text-neutral-500">{exec.company}</p>
-                        </div>
-                        <div className="ml-auto text-right">
-                          <span className="font-medium">${exec.rate}</span>
-                          <span className="text-neutral-500 text-xs">/hour</span>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {exec.expertise.slice(0, 3).map((skill: string, index: number) => (
-                          <span 
-                            key={index} 
-                            className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-neutral-50 text-neutral-700"
-                          >
-                            {skill}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-12 text-center sm:hidden">
-                <button
-                  onClick={handleBrowseExecutives}
-                  className="btn-secondary inline-flex items-center"
-                >
-                  View All
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Press Section */}
-          <div className="bg-neutral-50 py-20">
-            <div className="max-w-7xl mx-auto px-4">
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-12 items-center justify-items-center opacity-60">
-                <img src="/logos/wsj-logo.svg" alt="Wall Street Journal" className="h-5 md:h-6" />
-                <img src="/logos/ad-logo.svg" alt="Architectural Digest" className="h-5 md:h-6" />
-                <img src="/logos/bustle-logo.svg" alt="Bustle" className="h-5 md:h-6" />
-                <img src="/logos/fastcompany-logo.svg" alt="Fast Company" className="h-5 md:h-6" />
-                <img src="/logos/forbes-logo.svg" alt="Forbes" className="h-5 md:h-6" />
-              </div>
-            </div>
-          </div>
-
-          {/* Value Props */}
-          <div className="py-24 bg-white">
-            <div className="max-w-7xl mx-auto px-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
-                <div>
-                  <h3 className="text-xl mb-4">
-                    Get access to the world's best
-                  </h3>
-                  <p className="leading-relaxed">
-                    Connect with top experts in their field for personalized guidance.
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-xl mb-4">
-                    Personalized advice just for you
-                  </h3>
-                  <p className="leading-relaxed">
-                    Get tailored solutions and insights specific to your needs.
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-xl mb-4">
-                    Save time and money, guaranteed
-                  </h3>
-                  <p className="leading-relaxed">
-                    Make informed decisions with expert guidance at your fingertips.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {currentView === 'executives' && (
-        <div className="max-w-7xl mx-auto px-4 py-12">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold">Browse Experts</h1>
-            <button
-              onClick={handleJoinAsExecutive}
-              className="btn-secondary"
-            >
-              Become an Expert
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {executives.map((exec) => (
-              <div
-                key={exec.id}
-                onClick={() => handleViewExpertDetail(exec)}
-                className="cursor-pointer"
-              >
-                <div className="card">
-                  <div className="flex items-start space-x-4 mb-4">
-                    <img 
-                      src={exec.image} 
-                      alt={exec.name}
-                      className="w-16 h-16 rounded-full object-cover border border-neutral-100"
-                    />
-                    <div>
-                      <h3 className="font-medium">{exec.name}</h3>
-                      <p className="text-sm mb-1">{exec.title}</p>
-                      <p className="text-sm text-neutral-500">{exec.company}</p>
-                    </div>
-                    <div className="ml-auto text-right">
-                      <span className="font-medium">${exec.rate}</span>
-                      <span className="text-neutral-500 text-xs">/hour</span>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {exec.expertise.slice(0, 3).map((skill: string, index: number) => (
-                      <span 
-                        key={index} 
-                        className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-neutral-50 text-neutral-700"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {currentView === 'join-executive' && (
-        <div className="max-w-3xl mx-auto px-4 py-12">
-          <h1 className="text-3xl font-bold mb-8">Become an Expert</h1>
-          <p className="mb-8">
-            Share your expertise with professionals seeking guidance. Join our platform of industry leaders.
-          </p>
-          <button className="btn-primary">
-            Apply Now
-          </button>
-        </div>
-      )}
+      </footer>
     </div>
   );
 }
 
-// Expert Card Component
-interface ExpertCardProps {
-  expert: Expert;
-}
-
-const ExpertCard: React.FC<ExpertCardProps> = ({ expert }) => (
-  <div className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-neutral-100">
-    <div className="relative">
-      <img src={expert.image} alt={expert.name} className="w-full h-64 object-cover" />
-      <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium text-neutral-900">
-        Top Expert
-      </div>
-    </div>
+const ExpertCard = ({ expert, onViewProfile }: { expert: Expert, onViewProfile: (expert: Expert) => void }) => (
+  <div className="bg-white rounded-lg shadow-md overflow-hidden transform hover:-translate-y-1 transition-all duration-300">
+    <img src={expert.image} alt={expert.name} className="w-full h-56 object-cover" />
     <div className="p-6">
-      <div className="flex items-center mb-3">
-        <h3 className="font-medium text-lg text-neutral-900 group-hover:text-black transition-colors duration-200">
-          {expert.name}
-        </h3>
-        <div className="ml-auto flex items-center bg-neutral-50 px-2 py-1 rounded-full">
-          <span className="text-neutral-900">★</span>
-          <span className="ml-1 text-sm font-medium text-neutral-700">{expert.rating}</span>
-        </div>
-      </div>
-      <p className="text-neutral-900 font-medium mb-2">${expert.rate}/Session</p>
+      <h3 className="text-xl font-semibold mb-2">{expert.name}</h3>
       <p className="text-neutral-600 mb-4">{expert.title}</p>
-      <div className="flex flex-wrap gap-2">
-        {expert.expertise.map((skill: string, index: number) => (
-          <span 
-            key={index} 
-            className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-neutral-50 text-neutral-700 group-hover:bg-neutral-100 transition-colors duration-200"
-          >
-            {skill}
-          </span>
-        ))}
+      <div className="flex justify-between items-center">
+        <span className="text-lg font-bold">${expert.rate}/hour</span>
+        <button onClick={() => onViewProfile(expert)} className="text-sm font-semibold text-neutral-900 hover:text-neutral-700">
+          View Profile
+        </button>
       </div>
     </div>
   </div>
