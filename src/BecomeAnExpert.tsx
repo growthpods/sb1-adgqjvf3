@@ -127,7 +127,13 @@ const BecomeAnExpert = ({ onBack }: { onBack: () => void }) => {
               Join thousands of experts who are already earning income by helping others succeed.
             </p>
             <div className="mt-8">
-              <button className="bg-indigo-600 text-white px-8 py-3 rounded-md text-lg font-medium hover:bg-indigo-700 transition-colors">
+              <button 
+                onClick={() => {
+                  // Trigger expert signup flow
+                  window.dispatchEvent(new CustomEvent('startExpertSignup'));
+                }}
+                className="bg-indigo-600 text-white px-8 py-3 rounded-md text-lg font-medium hover:bg-indigo-700 transition-colors"
+              >
                 Apply to Become an Expert
               </button>
             </div>

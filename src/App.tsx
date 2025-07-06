@@ -6,16 +6,137 @@ import ExpertDetail from './ExpertDetail';
 import BecomeAnExpert from './BecomeAnExpert';
 import OurMission from './OurMission';
 import ExpertsList from './ExpertsList';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import SignUpForm from './components/auth/SignUpForm';
+import OTPVerification from './components/auth/OTPVerification';
+import LinkedInOnboarding from './components/auth/LinkedInOnboarding';
+import SaaSAdminDashboard from './components/dashboard/SaaSAdminDashboard';
 
-function App() {
+const AppContent = () => {
   const [selectedExpert, setSelectedExpert] = useState<Expert | null>(null);
   const [currentView, setCurrentView] = useState('home');
+  const [authFlow, setAuthFlow] = useState<'signup' | 'signin' | 'otp' | 'linkedin' | null>(null);
+  const [otpEmail, setOtpEmail] = useState('');
+  const [otpPurpose, setOtpPurpose] = useState<'registration' | 'booking' | 'login'>('login');
+  
+  const { user, loading, signOut, sendOTP, verifyOTP, signIn } = useAuth();
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If user is logged in, show appropriate dashboard
+  if (user) {
+    if (user.role === 'saas_admin') {
+      return <SaaSAdminDashboard />;
+    }
+    
+    if (user.role === 'expert') {
+      // Check if expert needs LinkedIn onboarding
+      if (!user.linkedin_url) {
+        return <LinkedInOnboarding onSuccess={() => setCurrentView('home')} />;
+      }
+      // TODO: Show expert dashboard
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Expert Dashboard</h1>
+            <p className="text-gray-600 mb-4">Welcome, {user.first_name}!</p>
+            <p className="text-sm text-gray-500 mb-4">Status: {user.status}</p>
+            <button
+              onClick={signOut}
+              className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
+            >
+              Sign Out
+            </button>
+          </div>
+        </div>
+      );
+    }
+    
+    // Regular user dashboard
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">User Dashboard</h1>
+          <p className="text-gray-600 mb-4">Welcome, {user.first_name}!</p>
+          <button
+            onClick={signOut}
+            className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
+          >
+            Sign Out
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Auth flows
+  if (authFlow === 'signup') {
+    return (
+      <SignUpForm
+        onSuccess={() => {
+          setAuthFlow('linkedin');
+        }}
+        onSwitchToLogin={() => setAuthFlow('signin')}
+      />
+    );
+  }
+
+  if (authFlow === 'otp') {
+    return (
+      <OTPVerification
+        email={otpEmail}
+        purpose={otpPurpose}
+        onSuccess={async () => {
+          if (otpPurpose === 'login') {
+            // After OTP verification for login, sign them in
+            try {
+              // Create a temporary password for OTP-based login
+              const tempPassword = Math.random().toString(36).slice(-8);
+              await signIn(otpEmail, tempPassword);
+            } catch (error) {
+              console.error('Login error:', error);
+            }
+          }
+          setAuthFlow(null);
+        }}
+        onBack={() => setAuthFlow('signin')}
+      />
+    );
+  }
+
+  if (authFlow === 'signin') {
+    return <SignInForm onOTPSent={(email) => {
+      setOtpEmail(email);
+      setOtpPurpose('login');
+      setAuthFlow('otp');
+    }} onBack={() => setAuthFlow(null)} />;
+  }
+
+  // Main app views
   if (selectedExpert) {
     return <ExpertDetail expert={selectedExpert} onBack={() => setSelectedExpert(null)} onBook={() => {}} />;
   }
 
   if (currentView === 'become-an-expert') {
+    // Listen for expert signup event
+    React.useEffect(() => {
+      const handleExpertSignup = () => {
+        setAuthFlow('signup');
+      };
+      
+      window.addEventListener('startExpertSignup', handleExpertSignup);
+      return () => window.removeEventListener('startExpertSignup', handleExpertSignup);
+    }, []);
+    
     return <BecomeAnExpert onBack={() => setCurrentView('home')} />;
   }
 
@@ -24,9 +145,31 @@ function App() {
   }
 
   if (currentView === 'experts-list') {
-    return <ExpertsList onBack={() => setCurrentView('home')} onExpertSelect={setSelectedExpert} />;
+    return <ExpertsList 
+      onBack={() => setCurrentView('home')} 
+      onExpertSelect={(expert: any) => {
+        // Convert the Supabase expert to our Expert type
+        const convertedExpert: Expert = {
+          id: expert.id,
+          name: expert.name,
+          title: expert.title,
+          company: expert.company || 'Independent',
+          image: expert.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(expert.name)}&background=6366f1&color=fff&size=200`,
+          rate: expert.hourly_rate ? expert.hourly_rate / 100 : 150,
+          rating: 4.9,
+          reviews: [],
+          expertise: expert.expertise || [],
+          background: expert.background || '',
+          experience: expert.experience || '',
+          education: expert.education || '',
+          achievements: expert.achievements || []
+        };
+        setSelectedExpert(convertedExpert);
+      }} 
+    />;
   }
 
+  // Home page
   return (
     <div className="bg-white">
       {/* Header */}
@@ -34,9 +177,9 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex-shrink-0">
-              <a href="/" className="text-2xl font-bold text-neutral-900">
+              <button onClick={() => setCurrentView('home')} className="text-2xl font-bold text-neutral-900">
                 meetexperts.co
-              </a>
+              </button>
             </div>
             <div className="hidden md:flex items-center space-x-8">
               <button onClick={() => setCurrentView('become-an-expert')} className="text-neutral-600 hover:text-neutral-900">
@@ -45,18 +188,9 @@ function App() {
               <button onClick={() => setCurrentView('our-mission')} className="text-neutral-600 hover:text-neutral-900">
                 Our Mission
               </button>
-              <button>
-                <Search className="h-5 w-5 text-neutral-600" />
+              <button onClick={() => setAuthFlow('signin')} className="bg-neutral-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-neutral-800">
+                Sign In
               </button>
-              <button>
-                <User className="h-5 w-5 text-neutral-600" />
-              </button>
-              <a
-                href="#"
-                className="bg-neutral-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-neutral-800"
-              >
-                Sign up
-              </a>
             </div>
           </div>
         </div>
@@ -145,6 +279,7 @@ function App() {
           </div>
         </div>
       </main>
+      
       <footer className="bg-neutral-800 text-white">
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -211,7 +346,89 @@ function App() {
       </footer>
     </div>
   );
-}
+};
+
+// Simple Sign In Form Component
+const SignInForm = ({ onOTPSent, onBack }: { onOTPSent: (email: string) => void; onBack: () => void }) => {
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const { sendOTP } = useAuth();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      await sendOTP(email, 'login');
+      onOTPSent(email);
+    } catch (error: any) {
+      setError(error.message || 'Failed to send OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Sign In
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Enter your email and we'll send you a verification code
+          </p>
+        </div>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
+              {error}
+            </div>
+          )}
+          
+          <div>
+            <label htmlFor="email" className="sr-only">
+              Email address
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              placeholder="Email address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Sending...' : 'Send Verification Code'}
+            </button>
+          </div>
+
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={onBack}
+              className="text-indigo-600 hover:text-indigo-500 text-sm"
+            >
+              ← Back to Home
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
 
 const ExpertCard = ({ expert, onViewProfile }: { expert: Expert, onViewProfile: (expert: Expert) => void }) => (
   <div className="bg-white rounded-lg shadow-md overflow-hidden transform hover:-translate-y-1 transition-all duration-300">
@@ -228,5 +445,13 @@ const ExpertCard = ({ expert, onViewProfile }: { expert: Expert, onViewProfile: 
     </div>
   </div>
 );
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+}
 
 export default App;
