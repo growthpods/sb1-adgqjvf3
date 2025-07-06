@@ -15,7 +15,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signUp: (email: string, password: string, role: 'expert' | 'user') => Promise<any>;
+  signUp: (email: string, password: string, role: 'expert' | 'user', firstName?: string, lastName?: string) => Promise<any>;
   signIn: (email: string, password: string) => Promise<any>;
   signOut: () => Promise<void>;
   sendOTP: (email: string, purpose: 'registration' | 'booking' | 'login') => Promise<any>;
@@ -77,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signUp = async (email: string, password: string, role: 'expert' | 'user') => {
+  const signUp = async (email: string, password: string, role: 'expert' | 'user', firstName?: string, lastName?: string) => {
     try {
       // First create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -95,7 +95,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             id: authData.user.id,
             email,
             role,
-            status: role === 'expert' ? 'pending' : 'active'
+            status: role === 'expert' ? 'pending' : 'active',
+            first_name: firstName,
+            last_name: lastName
           })
           .select()
           .single();

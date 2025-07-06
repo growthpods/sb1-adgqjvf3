@@ -8,40 +8,112 @@ interface SignUpFormProps {
 
 const SignUpForm: React.FC<SignUpFormProps> = ({ onSuccess, onSwitchToLogin }) => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [step, setStep] = useState<'form' | 'otp'>('form');
+  const [otpCode, setOtpCode] = useState('');
 
-  const { signUp } = useAuth();
+  const { sendOTP, verifyOTP, signUp } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
-    }
-
     setLoading(true);
 
     try {
-      await signUp(email, password, 'expert');
-      onSuccess();
+      // Send OTP for expert registration
+      await sendOTP(email, 'registration');
+      setStep('otp');
     } catch (error: any) {
-      setError(error.message || 'Failed to create account');
+      setError(error.message || 'Failed to send verification code');
     } finally {
       setLoading(false);
     }
   };
+
+  const handleOTPVerification = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      // Verify OTP
+      await verifyOTP(email, otpCode, 'registration');
+      
+      // Create expert account without password (passwordless)
+      const tempPassword = Math.random().toString(36).slice(-12); // Temporary password for backend
+      await signUp(email, tempPassword, 'expert', firstName, lastName);
+      
+      onSuccess();
+    } catch (error: any) {
+      setError(error.message || 'Failed to verify code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (step === 'otp') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
+          <div>
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+              Verify Your Email
+            </h2>
+            <p className="mt-2 text-center text-sm text-gray-600">
+              We sent a 6-digit code to {email}
+            </p>
+          </div>
+          <form className="mt-8 space-y-6" onSubmit={handleOTPVerification}>
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
+                {error}
+              </div>
+            )}
+            
+            <div>
+              <label htmlFor="otpCode" className="sr-only">
+                Verification Code
+              </label>
+              <input
+                id="otpCode"
+                name="otpCode"
+                type="text"
+                required
+                maxLength={6}
+                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm text-center text-2xl tracking-widest"
+                placeholder="000000"
+                value={otpCode}
+                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              />
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                disabled={loading || otpCode.length !== 6}
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Verifying...' : 'Verify & Create Account'}
+              </button>
+            </div>
+
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => setStep('form')}
+                className="text-indigo-600 hover:text-indigo-500 text-sm"
+              >
+                ← Back to form
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -111,38 +183,10 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSuccess, onSwitchToLogin }) =
             />
           </div>
 
-          <div>
-            <label htmlFor="password" className="sr-only">
-              Password
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              required
-              className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="confirmPassword" className="sr-only">
-              Confirm Password
-            </label>
-            <input
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              autoComplete="new-password"
-              required
-              className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="Confirm Password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
+          <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-md">
+            <p className="text-sm">
+              🔒 No password required! We'll send you a verification code to complete your registration.
+            </p>
           </div>
 
           <div>
@@ -151,7 +195,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSuccess, onSwitchToLogin }) =
               disabled={loading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Creating Account...' : 'Create Expert Account'}
+              {loading ? 'Sending Code...' : 'Send Verification Code'}
             </button>
           </div>
 
