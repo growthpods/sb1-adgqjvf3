@@ -21,6 +21,16 @@ const AppContent = () => {
   
   const { user, loading, signOut, sendOTP, verifyOTP, signIn } = useAuth();
 
+  // Listen for expert signup event at the top level
+  React.useEffect(() => {
+    const handleExpertSignup = () => {
+      setAuthFlow('signup');
+    };
+    
+    window.addEventListener('startExpertSignup', handleExpertSignup);
+    return () => window.removeEventListener('startExpertSignup', handleExpertSignup);
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -127,16 +137,6 @@ const AppContent = () => {
   }
 
   if (currentView === 'become-an-expert') {
-    // Listen for expert signup event
-    React.useEffect(() => {
-      const handleExpertSignup = () => {
-        setAuthFlow('signup');
-      };
-      
-      window.addEventListener('startExpertSignup', handleExpertSignup);
-      return () => window.removeEventListener('startExpertSignup', handleExpertSignup);
-    }, []);
-    
     return <BecomeAnExpert onBack={() => setCurrentView('home')} />;
   }
 
