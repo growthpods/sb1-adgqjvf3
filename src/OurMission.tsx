@@ -8,7 +8,7 @@ const OurMission = ({ onBack }: { onBack: () => void }) => {
           <div className="flex justify-between items-center h-16">
             <div className="flex-shrink-0">
               <a href="/" className="flex items-center">
-                <img src="/meetexperts-logo.svg" alt="MeetExperts" className="h-8" />
+                <img src="/logos/logo.png" alt="MeetExperts" className="h-8" />
               </a>
             </div>
             <div className="hidden md:flex items-center space-x-8">

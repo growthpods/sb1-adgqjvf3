@@ -178,7 +178,7 @@ const AppContent = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex-shrink-0">
               <button onClick={() => setCurrentView('home')} className="flex items-center">
-                <img src="/meetexperts-logo.svg" alt="MeetExperts" className="h-8" />
+                <img src="/logos/logo.png" alt="MeetExperts" className="h-8" />
               </button>
             </div>
             <div className="hidden md:flex items-center space-x-8">
