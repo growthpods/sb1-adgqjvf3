@@ -5,6 +5,7 @@ import { Expert } from './types';
 import ExpertDetail from './ExpertDetail';
 import BecomeAnExpert from './BecomeAnExpert';
 import OurMission from './OurMission';
+import ExpertsList from './ExpertsList';
 
 function App() {
   const [selectedExpert, setSelectedExpert] = useState<Expert | null>(null);
@@ -21,6 +22,11 @@ function App() {
   if (currentView === 'our-mission') {
     return <OurMission onBack={() => setCurrentView('home')} />;
   }
+
+  if (currentView === 'experts-list') {
+    return <ExpertsList onBack={() => setCurrentView('home')} onExpertSelect={setSelectedExpert} />;
+  }
+
   return (
     <div className="bg-white">
       {/* Header */}
@@ -68,12 +74,12 @@ function App() {
               Book the world's most in-demand experts & get advice over a video call
             </h1>
             <div className="mt-8">
-              <a
-                href="#"
+              <button
+                onClick={() => setCurrentView('experts-list')}
                 className="inline-block bg-white text-black px-8 py-3 rounded-lg font-semibold text-lg hover:bg-neutral-100"
               >
                 Find an Expert
-              </a>
+              </button>
             </div>
           </div>
         </div>
