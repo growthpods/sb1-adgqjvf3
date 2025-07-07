@@ -12,8 +12,21 @@ import OTPVerification from './components/auth/OTPVerification';
 import LinkedInOnboarding from './components/auth/LinkedInOnboarding';
 import SaaSAdminDashboard from './components/dashboard/SaaSAdminDashboard';
 
+// Define the expert type for ExpertDetail
+interface ExpertFromList {
+  id: string;
+  name: string;
+  title: string;
+  expertise: string[];
+  background: string;
+  hourly_rate: number;
+  image_url?: string;
+  calcomUsername?: string;
+  calcomEventType?: string;
+}
+
 const AppContent = () => {
-  const [selectedExpert, setSelectedExpert] = useState<Expert | null>(null);
+  const [selectedExpert, setSelectedExpert] = useState<ExpertFromList | null>(null);
   const [currentView, setCurrentView] = useState('home');
   const [authFlow, setAuthFlow] = useState<'signup' | 'signin' | 'otp' | 'linkedin' | null>(null);
   const [otpEmail, setOtpEmail] = useState('');
@@ -148,24 +161,20 @@ const AppContent = () => {
     return <ExpertsList 
       onBack={() => setCurrentView('home')} 
       onExpertSelect={(expert: any) => {
-        // Convert the Supabase expert to our Expert type
-        const convertedExpert: Expert = {
+        // Convert the Supabase expert to ExpertFromList type for ExpertDetail
+        const convertedExpert: ExpertFromList = {
           id: expert.id,
           name: expert.name,
           title: expert.title,
-          company: expert.company || 'Independent',
-          image: expert.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(expert.name)}&background=6366f1&color=fff&size=200`,
-          rate: expert.hourly_rate ? expert.hourly_rate / 100 : 150,
-          rating: 4.9,
-          reviews: [],
           expertise: expert.expertise || [],
           background: expert.background || '',
-          experience: expert.experience || '',
-          education: expert.education || '',
-          achievements: expert.achievements || []
+          hourly_rate: expert.hourly_rate || 15000, // Default $150/hour in cents
+          image_url: expert.image_url,
+          calcomUsername: expert.calcom_username,
+          calcomEventType: expert.calcom_event_type
         };
         setSelectedExpert(convertedExpert);
-      }} 
+      }}
     />;
   }
 
@@ -273,7 +282,25 @@ const AppContent = () => {
             <h2 className="text-3xl font-bold text-center mb-12">Top Experts. Access to the best has never been easier</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {executives.map((expert) => (
-                <ExpertCard key={expert.id} expert={expert} onViewProfile={setSelectedExpert} />
+                <ExpertCard 
+                  key={expert.id} 
+                  expert={expert} 
+                  onViewProfile={(expert: Expert) => {
+                    // Convert Expert from mockData to ExpertFromList for ExpertDetail
+                    const convertedExpert: ExpertFromList = {
+                      id: expert.id.toString(),
+                      name: expert.name,
+                      title: expert.title,
+                      expertise: expert.expertise || [],
+                      background: expert.about || '',
+                      hourly_rate: expert.rate * 100, // Convert to cents
+                      image_url: expert.image,
+                      calcomUsername: expert.calcomUsername,
+                      calcomEventType: expert.calcomEventType
+                    };
+                    setSelectedExpert(convertedExpert);
+                  }} 
+                />
               ))}
             </div>
           </div>

@@ -85,8 +85,8 @@ const ExpertsList = ({ onBack, onExpertSelect }: {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex-shrink-0">
-              <a href="/" className="text-2xl font-bold text-neutral-900">
-                meetexperts.co
+              <a href="/" className="flex items-center">
+                <img src="/logos/logo.png" alt="MeetExperts" className="h-8" />
               </a>
             </div>
             <div className="hidden md:flex items-center space-x-8">

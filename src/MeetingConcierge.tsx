@@ -548,9 +548,9 @@ const MeetingConcierge: React.FC<MeetingConciergeProps> = ({ expertId, expertCal
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
         <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-          🧠 AI {expertName}
+          💬 {expertName}
         </h2>
-        <p className="text-blue-100 text-sm mt-1">Chat with my AI persona • Ask questions • Book a meeting</p>
+        <p className="text-blue-100 text-sm mt-1">Ask questions • Book a meeting</p>
       </div>
 
       {/* Messages Container */}
