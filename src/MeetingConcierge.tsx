@@ -25,19 +25,36 @@ async function getAIPersonaResponse(expertUsername: string, userQuestion: string
     return "I'm sorry, I don't have enough information to answer that question. Let's schedule a meeting to discuss this in detail!";
   }
 
+  // Check for booking intent first
+  const bookingKeywords = ['book', 'meeting', 'schedule', 'call', 'appointment', 'session', 'chat', 'talk', 'discuss', 'meet'];
+  const hasBookingIntent = bookingKeywords.some(keyword => 
+    userQuestion.toLowerCase().includes(keyword)
+  );
+
+  if (hasBookingIntent) {
+    return "BOOKING_INTENT_DETECTED";
+  }
+
   // If this is the 3rd question, recommend booking
   if (questionCount >= 3) {
     return `That's a great question! I've enjoyed our conversation so far. To give you a more detailed and personalized answer, I'd love to schedule a proper meeting where we can dive deeper into this topic and discuss your specific needs. Would you like to book a meeting with me?`;
   }
 
-  // Create a persona-based system prompt
+  // Create a persona-based system prompt with better context understanding
   const systemPrompt = `You are ${expert.name}, a ${expert.title} with expertise in ${expert.expertise.join(', ')}. 
 
 Background: ${expert.background}
 
 Personality: ${expert.personality}
 
-You are answering questions in a brief, helpful way as if you're the actual expert. Keep responses concise (2-3 sentences max) but informative. Be friendly and professional. Always respond in first person as if you are ${expert.name}.`;
+IMPORTANT INSTRUCTIONS:
+- You are answering questions in a brief, helpful way as if you're the actual expert
+- Keep responses concise (2-3 sentences max) but informative  
+- Be friendly and professional
+- Always respond in first person as if you are ${expert.name}
+- If the user asks about booking, meetings, scheduling, or wants to talk more - respond with "BOOKING_INTENT_DETECTED" exactly
+- Focus on giving practical, actionable advice based on your expertise
+- Share specific examples or insights from your background when relevant`;
 
   try {
     // Use OpenAI API via Netlify Functions
@@ -271,7 +288,7 @@ const MeetingConcierge: React.FC<MeetingConciergeProps> = ({ expertId, expertCal
       setMessages([
         { 
           sender: 'ai', 
-          text: `👋 Hi there! I'm ${expertName}, and I'm excited to chat with you!\n\nI can answer some quick questions about my work and experience. Feel free to ask me anything about product design, user experience, or my background. After we chat a bit, I'll help you book a meeting if you'd like to dive deeper!\n\nWhat would you like to know?` 
+          text: `👋 I'm ${expertName} AI Persona\n\nI can answer some quick questions about my work and experience. Feel free to ask me anything about product design, user experience, or my background. After we chat a bit, I'll help you book a meeting if you'd like to dive deeper!\n\nWhat would you like to know?` 
         },
       ]);
       
@@ -321,10 +338,42 @@ const MeetingConcierge: React.FC<MeetingConciergeProps> = ({ expertId, expertCal
           const response = await getAIPersonaResponse(expertCalcomUsername || 'sarah-johnson', userMessage, 1);
           
           setIsTyping(false);
-          setMessages((msgs) => [
-            ...msgs,
-            { sender: 'ai', text: response },
-          ]);
+          
+          // Check if user wants to book immediately
+          if (response === "BOOKING_INTENT_DETECTED") {
+            if (slots.length === 0) {
+              setMessages((msgs) => [
+                ...msgs,
+                { sender: 'ai', text: 'Perfect! I\'d love to schedule a meeting with you. I\'m currently setting up my calendar availability. In the meantime, please email me directly at sarah@example.com or try booking again in a few minutes!' },
+              ]);
+            } else {
+              setMessages((msgs) => [
+                ...msgs,
+                { sender: 'ai', text: 'Perfect! I\'d love to schedule a meeting with you. Let me show you my available time slots.' },
+                { 
+                  sender: 'ai', 
+                  text: '📅 Here are my available times:',
+                  options: slots.slice(0, 8).map((slot: any) => ({ 
+                    id: slot.id, 
+                    label: new Date(slot.time).toLocaleDateString('en-US', { 
+                      weekday: 'short', 
+                      month: 'short', 
+                      day: 'numeric', 
+                      hour: 'numeric', 
+                      minute: '2-digit',
+                      hour12: true 
+                    })
+                  })),
+                },
+              ]);
+              setCurrentStep('slots');
+            }
+          } else {
+            setMessages((msgs) => [
+              ...msgs,
+              { sender: 'ai', text: response },
+            ]);
+          }
         } catch (err) {
           setIsTyping(false);
           setMessages((msgs) => [
@@ -340,23 +389,54 @@ const MeetingConcierge: React.FC<MeetingConciergeProps> = ({ expertId, expertCal
         setQuestionCount(newQuestionCount);
         
         try {
-          if (newQuestionCount >= 3) {
+          // Show typing indicator
+          setIsTyping(true);
+          
+          // Add realistic delay to simulate thinking
+          await new Promise(resolve => setTimeout(resolve, 1200 + Math.random() * 800));
+          
+          const response = await getAIPersonaResponse(expertCalcomUsername || 'sarah-johnson', userMessage, newQuestionCount);
+          
+          setIsTyping(false);
+          
+          // Check for booking intent
+          if (response === "BOOKING_INTENT_DETECTED") {
+            if (slots.length === 0) {
+              setMessages((msgs) => [
+                ...msgs,
+                { sender: 'ai', text: 'Perfect! I\'d love to schedule a meeting with you. I\'m currently setting up my calendar availability. In the meantime, please email me directly at sarah@example.com or try booking again in a few minutes!' },
+              ]);
+            } else {
+              setMessages((msgs) => [
+                ...msgs,
+                { sender: 'ai', text: 'Perfect! I\'d love to schedule a meeting with you. Let me show you my available time slots.' },
+                { 
+                  sender: 'ai', 
+                  text: '📅 Here are my available times:',
+                  options: slots.slice(0, 8).map((slot: any) => ({ 
+                    id: slot.id, 
+                    label: new Date(slot.time).toLocaleDateString('en-US', { 
+                      weekday: 'short', 
+                      month: 'short', 
+                      day: 'numeric', 
+                      hour: 'numeric', 
+                      minute: '2-digit',
+                      hour12: true 
+                    })
+                  })),
+                },
+              ]);
+              setCurrentStep('slots');
+            }
+          } else if (newQuestionCount >= 3) {
             // After 3rd question, notify about limit and ask if they want to book
             setMessages((msgs) => [
               ...msgs,
-              { sender: 'ai', text: `Hey! You've reached your limit of free questions. 🎯\n\nWould you like to have a 1:1 meeting with me to dive deeper into "${userMessage}" and discuss your specific needs in detail?` },
+              { sender: 'ai', text: response },
+              { sender: 'ai', text: `You've reached your limit of free questions. 🎯\n\nWould you like to have a 1:1 meeting with me to dive deeper and discuss your specific needs in detail?` },
             ]);
             setCurrentStep('booking_transition');
           } else {
-            // Show typing indicator for questions 1-2
-            setIsTyping(true);
-            
-            // Add realistic delay to simulate thinking
-            await new Promise(resolve => setTimeout(resolve, 1200 + Math.random() * 800));
-            
-            const response = await getAIPersonaResponse(expertCalcomUsername || 'sarah-johnson', userMessage, newQuestionCount);
-            
-            setIsTyping(false);
             setMessages((msgs) => [
               ...msgs,
               { sender: 'ai', text: response },
